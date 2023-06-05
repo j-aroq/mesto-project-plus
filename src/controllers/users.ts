@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-
 import User from "../models/user";
 
 export const getUsers = (req: Request, res: Response, next: NextFunction) => {
@@ -27,6 +26,47 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
     about: req.body.about,
     avatar: req.body.avatar,
   })
+    .then((user) => res.status(201).send(user))
+    .catch((err) => {
+      res.status(400).send({ error: err.message });
+      next(err);
+    });
+};
+
+export const updateProfile = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  User.findByIdAndUpdate(
+    req.user._id,
+    {
+      name: req.body.name,
+      about: req.body.about,
+    },
+    {
+      new: true,
+    }
+  )
+    .then((user) => res.status(201).send(user))
+    .catch((err) => {
+      res.status(400).send({ error: err.message });
+      next(err);
+    });
+};
+
+export const updateAvatar = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar: req.body.avatar },
+    {
+      new: true,
+    }
+  )
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       res.status(400).send({ error: err.message });
