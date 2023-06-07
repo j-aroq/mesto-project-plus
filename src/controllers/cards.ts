@@ -1,64 +1,86 @@
-import { Request, Response, NextFunction } from "express";
-import Card from "../models/card";
+import { Request, Response, NextFunction } from 'express';
+import Card from '../models/card';
+import { statusCode200 } from '../constants/status';
+import handleErrors from '../utils/handle-errors';
 
-export const createCard = (req: Request, res: Response, next: NextFunction) => {
-  console.log(req.user._id);
-  Card.create({
-    name: req.body.name,
-    link: req.body.link,
-    owner: req.user._id,
-  })
-    .then((card) => res.status(201).send(card))
-    .catch((err) => {
-      res.status(400).send({ error: err.message });
-      next(err);
-    });
-};
-
-export const getCards = (req: Request, res: Response, next: NextFunction) => {
-  return Card.find({})
-    .then((cards) => res.send({ data: cards }))
-    .catch((err) => {
-      res.status(500).send({ error: err.message });
-      next(err);
-    });
-};
-
-export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
-  return Card.findByIdAndDelete(req.params.cardId)
-    .then((card) => res.send({ data: card }))
-    .catch((err) => {
-      res.status(500).send({ error: err.message });
-      next(err);
-    });
-};
-
-export const likeCard = (req: Request, res: Response, next: NextFunction) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
-    { new: true }
-  )
-    .then((card) => res.status(201).send({ data: card }))
-    .catch((err) => {
-      res.status(500).send({ error: err.message });
-      next(err);
-    });
-};
-
-export const dislikeCard = (
+export const createCard = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } },
-    { new: true }
-  )
-    .then((card) => res.status(201).send({ data: card }))
-    .catch((err) => {
-      res.status(500).send({ error: err.message });
-      next(err);
+  try {
+    const card = await Card.create({
+      name: req.body.name,
+      link: req.body.link,
+      owner: req.user._id,
     });
+    res.status(statusCode200).send(card);
+  } catch (err) {
+    handleErrors(res, err);
+    next(err);
+  }
+};
+
+export const getCards = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const cards = await Card.find({});
+    res.status(statusCode200).send(cards);
+  } catch (err) {
+    handleErrors(res, err);
+    next(err);
+  }
+};
+
+export const deleteCard = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const card = await Card.findByIdAndDelete(req.params.cardId);
+    res.status(statusCode200).send(card);
+  } catch (err) {
+    handleErrors(res, err);
+    next(err);
+  }
+};
+
+export const likeCard = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const card = await Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $addToSet: { likes: req.user._id } },
+      { new: true },
+    );
+    res.status(statusCode200).send(card);
+  } catch (err) {
+    handleErrors(res, err);
+    next(err);
+  }
+};
+
+export const dislikeCard = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const card = await Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $pull: { likes: req.user._id } },
+      { new: true },
+    );
+    res.status(statusCode200).send(card);
+  } catch (err) {
+    handleErrors(res, err);
+    next(err);
+  }
 };
