@@ -1,8 +1,12 @@
-import { Request } from 'express';
+/* eslint-disable no-unused-vars */
 import { Types } from 'mongoose';
 
-export interface CustomRequest extends Request {
-  user: {
-    _id: Types.ObjectId | string;
-  };
+declare global {
+  namespace Express {
+      interface Request {
+        user: {
+          _id: Types.ObjectId | string;
+        };
+      }
+  }
 }
