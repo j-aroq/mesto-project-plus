@@ -1,4 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
+import { Error as MongooseError } from 'mongoose';
+import { Request, Response } from 'express';
 import Card from '../models/card';
 import { statusCode200 } from '../constants/status';
 import handleErrors from '../utils/handle-errors';
@@ -6,7 +7,6 @@ import handleErrors from '../utils/handle-errors';
 export const createCard = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const card = await Card.create({
@@ -16,43 +16,48 @@ export const createCard = async (
     });
     res.status(statusCode200).send(card);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };
 
 export const getCards = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const cards = await Card.find({});
     res.status(statusCode200).send(cards);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };
 
 export const deleteCard = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const card = await Card.findByIdAndDelete(req.params.cardId);
+    if (!card) {
+      const error = new Error('Карточка не найдена');
+      error.name = 'NotFound';
+      throw error;
+    }
     res.status(statusCode200).send(card);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };
 
 export const likeCard = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const card = await Card.findByIdAndUpdate(
@@ -60,17 +65,22 @@ export const likeCard = async (
       { $addToSet: { likes: req.user._id } },
       { new: true },
     );
+    if (!card) {
+      const error = new Error('Карточка не найдена');
+      error.name = 'NotFound';
+      throw error;
+    }
     res.status(statusCode200).send(card);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };
 
 export const dislikeCard = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const card = await Card.findByIdAndUpdate(
@@ -78,9 +88,15 @@ export const dislikeCard = async (
       { $pull: { likes: req.user._id } },
       { new: true },
     );
+    if (!card) {
+      const error = new Error('Карточка не найдена');
+      error.name = 'NotFound';
+      throw error;
+    }
     res.status(statusCode200).send(card);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };

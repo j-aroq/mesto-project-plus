@@ -1,4 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
+import { Error as MongooseError } from 'mongoose';
+import { Request, Response } from 'express';
 import User from '../models/user';
 import handleErrors from '../utils/handle-errors';
 import { statusCode200 } from '../constants/status';
@@ -6,53 +7,53 @@ import { statusCode200 } from '../constants/status';
 export const getUsers = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const users = await User.find({});
     res.status(statusCode200).send(users);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };
 
 export const getUser = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) {
-      const error = new Error('Пользователь не найден');
+      const error = new Error('Пользоваетль не найден');
+      error.name = 'NotFound';
       throw error;
     }
     res.status(statusCode200).send(user);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };
 
 export const createUser = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const newUser = await User.create(req.body);
     res.status(statusCode200).send(newUser);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };
 
 export const updateProfile = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const user = await User.findByIdAndUpdate(
@@ -63,19 +64,25 @@ export const updateProfile = async (
       },
       {
         new: true,
+        runValidators: true,
       },
     );
+    if (!user) {
+      const error = new Error('Пользоваетль не найден');
+      error.name = 'NotFound';
+      throw error;
+    }
     res.status(statusCode200).send(user);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };
 
 export const updateAvatar = async (
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
     const user = await User.findByIdAndUpdate(
@@ -85,11 +92,18 @@ export const updateAvatar = async (
       },
       {
         new: true,
+        runValidators: true,
       },
     );
+    if (!user) {
+      const error = new Error('Пользоваетль не найден');
+      error.name = 'NotFound';
+      throw error;
+    }
     res.status(statusCode200).send(user);
   } catch (err) {
-    handleErrors(res, err);
-    next(err);
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
   }
 };
