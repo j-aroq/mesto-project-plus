@@ -15,6 +15,7 @@ import {
   cardDislikeRouter,
   cardLikeRouter,
 } from './routes/cards';
+import './utils/custom-request';
 
 const { PORT = 3000 } = process.env;
 
