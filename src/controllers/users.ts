@@ -1,19 +1,19 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import User from '../models/user';
 import handleErrors from '../utils/handle-errors';
 import { statusCode200 } from '../constants/status';
-import { CustomRequest } from '../interfaces/custom-request';
 
 export const getUsers = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    // res.send('Hello!');
     const users = await User.find({});
     res.status(statusCode200).send(users);
   } catch (err) {
     handleErrors(res, err);
+    next(err);
   }
 };
 
@@ -38,23 +38,25 @@ export const getUser = async (
 export const createUser = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const newUser = await User.create(req.body);
     res.status(statusCode200).send(newUser);
   } catch (err) {
     handleErrors(res, err);
+    next(err);
   }
 };
 
 export const updateProfile = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    const request = req as CustomRequest;
     const user = await User.findByIdAndUpdate(
-      request.user._id,
+      req.user._id,
       {
         name: req.body.name,
         about: req.body.about,
@@ -66,17 +68,18 @@ export const updateProfile = async (
     res.status(statusCode200).send(user);
   } catch (err) {
     handleErrors(res, err);
+    next(err);
   }
 };
 
 export const updateAvatar = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    const request = req as CustomRequest;
     const user = await User.findByIdAndUpdate(
-      request.user._id,
+      req.user._id,
       {
         avatar: req.body.avatar,
       },
@@ -87,5 +90,6 @@ export const updateAvatar = async (
     res.status(statusCode200).send(user);
   } catch (err) {
     handleErrors(res, err);
+    next(err);
   }
 };
