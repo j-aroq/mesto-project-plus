@@ -1,20 +1,8 @@
 // eslint-disable-next-line object-curly-newline
 import express, { json, Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
-import {
-  userRouter,
-  usersRouter,
-  newUserRouter,
-  updatedAvatarRouter,
-  updatedUserInfoRouter,
-} from './routes/users';
-import {
-  cardRemovalRouter,
-  newCardRouter,
-  cardsRouter,
-  cardDislikeRouter,
-  cardLikeRouter,
-} from './routes/cards';
+import { userRouter, userProfileRouter } from './routes/users';
+import cardRouter from './routes/cards';
 import './utils/custom-request';
 
 const { PORT = 3000 } = process.env;
@@ -33,17 +21,14 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use('/users', newUserRouter);
-app.use('/users', usersRouter);
 app.use('/users', userRouter);
-app.use('/users/me', updatedUserInfoRouter);
-app.use('/users/me', updatedAvatarRouter);
+app.use('/users/me', userProfileRouter);
+app.use('/cards', cardRouter);
 
-app.use('/cards', newCardRouter);
-app.use('/cards', cardsRouter);
-app.use('/cards', cardRemovalRouter);
-app.use('/cards', cardLikeRouter);
-app.use('/cards', cardDislikeRouter);
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const notFoundRoute = new Error('Маршрут не найден');
+  next(notFoundRoute.message);
+});
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

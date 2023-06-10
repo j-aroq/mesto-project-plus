@@ -7,10 +7,9 @@ import {
   dislikeCard,
 } from '../controllers/cards';
 
-const router = Router();
-
-export const cardsRouter = router.get('/', getCards);
-export const newCardRouter = router.post('/', createCard);
-export const cardRemovalRouter = router.delete('/:cardId', deleteCard);
-export const cardLikeRouter = router.put('/:cardId/likes', likeCard);
-export const cardDislikeRouter = router.delete('/:cardId/likes', dislikeCard);
+export default Router()
+  .get('/', getCards)
+  .post('/', createCard)
+  .delete('/:cardId', deleteCard)
+  .put('/:cardId/likes', likeCard)
+  .delete('/:cardId/likes', dislikeCard);

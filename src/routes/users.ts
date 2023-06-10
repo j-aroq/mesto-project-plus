@@ -7,10 +7,11 @@ import {
   updateAvatar,
 } from '../controllers/users';
 
-const router = Router();
+export const userRouter = Router()
+  .get('/', getUsers)
+  .get('/:userId', getUser)
+  .post('/', createUser);
 
-export const usersRouter = router.get('/', getUsers);
-export const userRouter = router.get('/:userId', getUser);
-export const newUserRouter = router.post('/', createUser);
-export const updatedUserInfoRouter = router.patch('/', updateProfile);
-export const updatedAvatarRouter = router.patch('/avatar', updateAvatar);
+export const userProfileRouter = Router()
+  .patch('/', updateProfile)
+  .patch('/avatar', updateAvatar);
