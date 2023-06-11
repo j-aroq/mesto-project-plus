@@ -25,9 +25,8 @@ app.use('/users', userRouter);
 app.use('/users/me', userProfileRouter);
 app.use('/cards', cardRouter);
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const notFoundRoute = new Error('Маршрут не найден');
-  next(notFoundRoute.message);
+app.use((req: Request, res: Response) => {
+  res.status(404).send({ message: 'Маршрут не найден' });
 });
 
 app.listen(PORT, () => {
