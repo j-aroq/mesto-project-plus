@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import handleErrors from '../utils/handle-errors';
 import { statusCode200 } from '../constants/status';
+import { IUserIdRequest, IUserRequest } from '../utils/custom-request';
 
 export const getUsers = async (
   req: Request,
@@ -22,12 +23,32 @@ export const getUsers = async (
   }
 };
 
-export const getUser = async (
+export const getUserById = async (
   req: Request,
   res: Response,
 ) => {
   try {
     const user = await User.findById(req.params.userId);
+    if (!user) {
+      const error = new Error('Пользователь не найден');
+      error.name = 'NotFound';
+      throw error;
+    }
+    res.status(statusCode200).send(user);
+  } catch (err) {
+    if (err instanceof Error || err instanceof MongooseError) {
+      handleErrors(res, err);
+    }
+  }
+};
+
+export const getUserProfile = async (
+  req: IUserRequest,
+  res: Response,
+) => {
+  try {
+    const { _id } = req.user as IUserIdRequest;
+    const user = await User.findById(_id);
     if (!user) {
       const error = new Error('Пользователь не найден');
       error.name = 'NotFound';
@@ -59,16 +80,15 @@ export const createUser = async (
 };
 
 export const updateProfile = async (
-  req: Request,
+  req: IUserRequest,
   res: Response,
 ) => {
   try {
+    const { name, about } = req.body;
+    const { _id } = req.user as IUserIdRequest;
     const user = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        name: req.body.name,
-        about: req.body.about,
-      },
+      _id,
+      { name, about },
       {
         new: true,
         runValidators: true,
@@ -88,15 +108,15 @@ export const updateProfile = async (
 };
 
 export const updateAvatar = async (
-  req: Request,
+  req: IUserRequest,
   res: Response,
 ) => {
   try {
+    const { avatar } = req.body;
+    const { _id } = req.user as IUserIdRequest;
     const user = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        avatar: req.body.avatar,
-      },
+      _id,
+      { avatar },
       {
         new: true,
         runValidators: true,

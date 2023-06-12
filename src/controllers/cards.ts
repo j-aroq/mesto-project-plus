@@ -3,16 +3,17 @@ import { Request, Response } from 'express';
 import Card from '../models/card';
 import { statusCode200 } from '../constants/status';
 import handleErrors from '../utils/handle-errors';
+import { IUserIdRequest, IUserRequest } from '../utils/custom-request';
 
 export const createCard = async (
-  req: Request,
+  req: IUserRequest,
   res: Response,
 ) => {
   try {
+    const { name, link } = req.body;
+    const { _id } = req.user as IUserIdRequest;
     const card = await Card.create({
-      name: req.body.name,
-      link: req.body.link,
-      owner: req.user._id,
+      name, link, owner: _id,
     });
     res.status(statusCode200).send(card);
   } catch (err) {
@@ -56,13 +57,14 @@ export const deleteCard = async (
 };
 
 export const likeCard = async (
-  req: Request,
+  req: IUserRequest,
   res: Response,
 ) => {
   try {
+    const { _id } = req.user as IUserIdRequest;
     const card = await Card.findByIdAndUpdate(
       req.params.cardId,
-      { $addToSet: { likes: req.user._id } },
+      { $addToSet: { likes: _id } },
       { new: true },
     );
     if (!card) {
@@ -79,13 +81,14 @@ export const likeCard = async (
 };
 
 export const dislikeCard = async (
-  req: Request,
+  req: IUserRequest,
   res: Response,
 ) => {
   try {
+    const { _id } = req.user as IUserIdRequest;
     const card = await Card.findByIdAndUpdate(
       req.params.cardId,
-      { $pull: { likes: req.user._id } },
+      { $pull: { likes: _id } },
       { new: true },
     );
     if (!card) {

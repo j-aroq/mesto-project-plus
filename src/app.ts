@@ -1,10 +1,10 @@
 // eslint-disable-next-line object-curly-newline
-import express, { json, Request, Response, NextFunction } from 'express';
+import express, { json, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { userRouter, userProfileRouter } from './routes/users';
 import cardRouter from './routes/cards';
-import './utils/custom-request';
 import { login, createUser } from './controllers/users';
+import auth from './middlewares/auth';
 
 const { PORT = 3000 } = process.env;
 
@@ -15,17 +15,13 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 app.use(json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  req.user = {
-    _id: '647de6565d08b8c2606d33ca',
-  };
-  next();
-});
+app.post('/signin', login);
+app.post('/signup', createUser);
+
+app.use(auth);
 
 app.use('/users', userRouter);
 app.use('/users/me', userProfileRouter);
-app.post('/signin', login);
-app.post('/signup', createUser);
 app.use('/cards', cardRouter);
 
 app.use((req: Request, res: Response) => {
