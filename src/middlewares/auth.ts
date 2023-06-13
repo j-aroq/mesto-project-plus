@@ -6,32 +6,22 @@ import { IUserRequest } from '../utils/custom-request';
 
 // eslint-disable-next-line consistent-return
 export default (req: IUserRequest, res: Response, next: NextFunction) => {
-  const authorization = req.cookies.jwt;
-
-  if (!authorization) {
-    return res
-      .status(statusCode401)
-      .send({ message: 'Необходима авторизация' });
-  }
-  // const { authorization } = req.headers;
-
-  // if (!authorization || !authorization.startsWith('Bearer ')) {
-  //   return res
-  //     .status(statusCode401)
-  //     .send({ message: 'Необходима авторизация' });
-  // }
-  // const token = authorization.replace('Bearer ', '');
-  let payload;
-
   try {
-    payload = jwt.verify(authorization, 'strong-secret');
+    const authorization = req.cookies.jwt;
+
+    if (!authorization) {
+      return res
+        .status(statusCode401)
+        .send({ message: 'Необходима авторизация' });
+    }
+
+    const payload = jwt.verify(authorization, 'strong-secret');
+    req.user = payload;
   } catch (err) {
     return res
       .status(statusCode401)
       .send({ message: 'Необходима авторизация' });
   }
-
-  req.user = payload;
 
   next();
 };

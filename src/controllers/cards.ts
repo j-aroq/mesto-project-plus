@@ -38,16 +38,23 @@ export const getCards = async (
 };
 
 export const deleteCard = async (
-  req: Request,
+  req: IUserRequest,
   res: Response,
 ) => {
+  const { _id } = req.user as IUserIdRequest;
   try {
-    const card = await Card.findByIdAndDelete(req.params.cardId);
+    const card = await Card.findById(req.params.cardId);
     if (!card) {
       const error = new Error('Карточка не найдена');
       error.name = 'NotFound';
       throw error;
     }
+    if (card?.owner.toString() !== _id.toString()) {
+      const error = new Error('Можно удалять только свои карточки!');
+      error.name = 'Forbidden';
+      throw error;
+    }
+    await card.remove();
     res.status(statusCode200).send(card);
   } catch (err) {
     if (err instanceof Error || err instanceof MongooseError) {

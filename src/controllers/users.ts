@@ -68,6 +68,12 @@ export const createUser = async (
 ) => {
   try {
     const hash = await bcrypt.hash(req.body.password, 10);
+    const emailExist = await User.findOne({ email: req.body.email });
+    if (emailExist) {
+      const error = new Error('Пользователь с таким email существует');
+      error.name = 'ConflictError';
+      throw error;
+    }
     const newUser = await User.create({
       ...req.body, password: hash,
     });
