@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { isCelebrateError } from 'celebrate';
+import { IError } from './handle-errors';
 
 export default function celebrateErrorHandler(
-  err: Error,
+  err: IError,
   req: Request,
   res: Response,
   next: NextFunction,

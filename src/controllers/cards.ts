@@ -1,13 +1,16 @@
 import { Error as MongooseError } from 'mongoose';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Card from '../models/card';
 import { statusCode200 } from '../constants/status';
-import handleErrors from '../utils/handle-errors';
 import { IUserIdRequest, IUserRequest } from '../utils/custom-request';
+import Error404 from '../errors/error404';
+import Error401 from '../errors/error401';
+import Error400 from '../errors/error400';
 
 export const createCard = async (
   req: IUserRequest,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { name, link } = req.body;
@@ -17,8 +20,10 @@ export const createCard = async (
     });
     res.status(statusCode200).send(card);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
+    if ((err instanceof Error || err instanceof MongooseError) && err.name === 'ValidationError') {
+      next(new Error400('Переданы некорректные данные'));
+    } else {
+      next(err);
     }
   }
 };
@@ -26,39 +31,37 @@ export const createCard = async (
 export const getCards = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const cards = await Card.find({});
     res.status(statusCode200).send(cards);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
-    }
+    next(err);
   }
 };
 
 export const deleteCard = async (
   req: IUserRequest,
   res: Response,
+  next: NextFunction,
 ) => {
   const { _id } = req.user as IUserIdRequest;
   try {
     const card = await Card.findById(req.params.cardId);
     if (!card) {
-      const error = new Error('Карточка не найдена');
-      error.name = 'NotFound';
-      throw error;
+      throw new Error404('Карточка не найдена');
     }
     if (card?.owner.toString() !== _id.toString()) {
-      const error = new Error('Можно удалять только свои карточки!');
-      error.name = 'Forbidden';
-      throw error;
+      throw new Error401('Можно удалять только свои карточки!');
     }
     await card.remove();
     res.status(statusCode200).send(card);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
+    if ((err instanceof Error || err instanceof MongooseError) && err.name === 'CastError') {
+      next(new Error400('Переданы некорректные данные'));
+    } else {
+      next(err);
     }
   }
 };
@@ -66,6 +69,7 @@ export const deleteCard = async (
 export const likeCard = async (
   req: IUserRequest,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { _id } = req.user as IUserIdRequest;
@@ -75,14 +79,14 @@ export const likeCard = async (
       { new: true },
     );
     if (!card) {
-      const error = new Error('Карточка не найдена');
-      error.name = 'NotFound';
-      throw error;
+      throw new Error404('Карточка не найдена');
     }
     res.status(statusCode200).send(card);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
+    if ((err instanceof Error || err instanceof MongooseError) && err.name === 'CastError') {
+      next(new Error400('Переданы некорректные данные'));
+    } else {
+      next(err);
     }
   }
 };
@@ -90,6 +94,7 @@ export const likeCard = async (
 export const dislikeCard = async (
   req: IUserRequest,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { _id } = req.user as IUserIdRequest;
@@ -99,14 +104,14 @@ export const dislikeCard = async (
       { new: true },
     );
     if (!card) {
-      const error = new Error('Карточка не найдена');
-      error.name = 'NotFound';
-      throw error;
+      throw new Error404('Карточка не найдена');
     }
     res.status(statusCode200).send(card);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
+    if ((err instanceof Error || err instanceof MongooseError) && err.name === 'CastError') {
+      next(new Error400('Переданы некорректные данные'));
+    } else {
+      next(err);
     }
   }
 };

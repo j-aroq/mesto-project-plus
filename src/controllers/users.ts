@@ -1,42 +1,45 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { Error as MongooseError } from 'mongoose';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
-import handleErrors from '../utils/handle-errors';
 import { statusCode200 } from '../constants/status';
 import { IUserIdRequest, IUserRequest } from '../utils/custom-request';
+import Error404 from '../errors/error404';
+import Error409 from '../errors/error409';
+import Error400 from '../errors/error400';
+import Error401 from '../errors/error401';
 
 export const getUsers = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const users = await User.find({});
     res.status(statusCode200).send(users);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
-    }
+    next(err);
   }
 };
 
 export const getUserById = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) {
-      const error = new Error('Пользователь не найден');
-      error.name = 'NotFound';
-      throw error;
+      throw new Error404('Пользователь не найден');
     }
     res.status(statusCode200).send(user);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
+    if ((err instanceof Error || err instanceof MongooseError) && err.name === 'CastError') {
+      next(new Error400('Переданы некорректные данные'));
+    } else {
+      next(err);
     }
   }
 };
@@ -44,19 +47,20 @@ export const getUserById = async (
 export const getUserProfile = async (
   req: IUserRequest,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { _id } = req.user as IUserIdRequest;
     const user = await User.findById(_id);
     if (!user) {
-      const error = new Error('Пользователь не найден');
-      error.name = 'NotFound';
-      throw error;
+      throw new Error404('Пользователь не найден');
     }
     res.status(statusCode200).send(user);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
+    if ((err instanceof Error || err instanceof MongooseError) && err.name === 'CastError') {
+      next(new Error400('Переданы некорректные данные'));
+    } else {
+      next(err);
     }
   }
 };
@@ -64,29 +68,27 @@ export const getUserProfile = async (
 export const createUser = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const hash = await bcrypt.hash(req.body.password, 10);
     const emailExist = await User.findOne({ email: req.body.email });
     if (emailExist) {
-      const error = new Error('Пользователь с таким email существует');
-      error.name = 'ConflictError';
-      throw error;
+      throw new Error409('Пользователь с таким email существует');
     }
     const newUser = await User.create({
       ...req.body, password: hash,
     });
     res.status(statusCode200).send(newUser);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
-    }
+    next(err);
   }
 };
 
 export const updateProfile = async (
   req: IUserRequest,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { name, about } = req.body;
@@ -100,14 +102,14 @@ export const updateProfile = async (
       },
     );
     if (!user) {
-      const error = new Error('Пользователь не найден');
-      error.name = 'NotFound';
-      throw error;
+      throw new Error404('Пользователь не найден');
     }
     res.status(statusCode200).send(user);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
+    if ((err instanceof Error || err instanceof MongooseError) && err.name === 'ValidationError') {
+      next(new Error400('Переданы некорректные данные'));
+    } else {
+      next(err);
     }
   }
 };
@@ -115,6 +117,7 @@ export const updateProfile = async (
 export const updateAvatar = async (
   req: IUserRequest,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { avatar } = req.body;
@@ -128,14 +131,14 @@ export const updateAvatar = async (
       },
     );
     if (!user) {
-      const error = new Error('Пользователь не найден');
-      error.name = 'NotFound';
-      throw error;
+      throw new Error404('Пользователь не найден');
     }
     res.status(statusCode200).send(user);
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
+    if ((err instanceof Error || err instanceof MongooseError) && err.name === 'ValidationError') {
+      next(new Error400('Переданы некорректные данные'));
+    } else {
+      next(err);
     }
   }
 };
@@ -143,6 +146,7 @@ export const updateAvatar = async (
 export const login = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   const { email, password } = req.body;
   try {
@@ -154,8 +158,6 @@ export const login = async (
       sameSite: true,
     }).send({ token });
   } catch (err) {
-    if (err instanceof Error || err instanceof MongooseError) {
-      handleErrors(res, err);
-    }
+    next(new Error401('Необходима авторизация'));
   }
 };

@@ -12,7 +12,8 @@ import { login, createUser } from './controllers/users';
 import auth from './middlewares/auth';
 import { requestLogger, errorLogger } from './middlewares/logger';
 import { validateCreateUser, validateLogin } from './validation/user';
-import celebrateErrorHandler from './utils/celebrate-handle-errors';
+import celebrateErrorHandler from './middlewares/celebrate-handle-errors';
+import errorHandler from './middlewares/handle-errors';
 
 const { PORT = 3000 } = process.env;
 
@@ -43,6 +44,8 @@ app.use(errors());
 app.use((req: Request, res: Response) => {
   res.status(statusCode404).send({ message: 'Маршрут не найден' });
 });
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
