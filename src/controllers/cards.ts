@@ -1,11 +1,11 @@
-import { Error as MongooseError } from 'mongoose';
+import { MongooseError } from 'mongoose';
 import { Request, Response, NextFunction } from 'express';
 import Card from '../models/card';
 import { statusCode200 } from '../constants/status';
 import { IUserIdRequest, IUserRequest } from '../utils/custom-request';
 import Error404 from '../errors/error404';
-import Error401 from '../errors/error401';
 import Error400 from '../errors/error400';
+import Error403 from '../errors/error403';
 
 export const createCard = async (
   req: IUserRequest,
@@ -53,7 +53,7 @@ export const deleteCard = async (
       throw new Error404('Карточка не найдена');
     }
     if (card?.owner.toString() !== _id.toString()) {
-      throw new Error401('Можно удалять только свои карточки!');
+      throw new Error403('Можно удалять только свои карточки!');
     }
     await card.remove();
     res.status(statusCode200).send(card);
