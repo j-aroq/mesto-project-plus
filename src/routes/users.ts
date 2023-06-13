@@ -1,17 +1,18 @@
 import { Router } from 'express';
 import {
-  getUser,
+  getUserById,
   getUsers,
-  createUser,
   updateProfile,
   updateAvatar,
+  getUserProfile,
 } from '../controllers/users';
+import { validateUpdateAvatar, validateUpdateProfile, validateUserdId } from '../validation/user';
 
 export const userRouter = Router()
   .get('/', getUsers)
-  .get('/:userId', getUser)
-  .post('/', createUser);
+  .get('/:userId', validateUserdId, getUserById);
 
 export const userProfileRouter = Router()
-  .patch('/', updateProfile)
-  .patch('/avatar', updateAvatar);
+  .get('/', getUserProfile)
+  .patch('/', validateUpdateProfile, updateProfile)
+  .patch('/avatar', validateUpdateAvatar, updateAvatar);

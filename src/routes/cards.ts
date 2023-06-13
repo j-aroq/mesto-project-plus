@@ -6,10 +6,11 @@ import {
   likeCard,
   dislikeCard,
 } from '../controllers/cards';
+import { validateCardId, validateCreateCard } from '../validation/card';
 
 export default Router()
   .get('/', getCards)
-  .post('/', createCard)
-  .delete('/:cardId', deleteCard)
-  .put('/:cardId/likes', likeCard)
-  .delete('/:cardId/likes', dislikeCard);
+  .post('/', validateCreateCard, createCard)
+  .delete('/:cardId', validateCardId, deleteCard)
+  .put('/:cardId/likes', validateCardId, likeCard)
+  .delete('/:cardId/likes', validateCardId, dislikeCard);
