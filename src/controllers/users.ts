@@ -1,5 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { Error as MongooseError } from 'mongoose';
+import { MongooseError } from 'mongoose';
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -72,16 +72,16 @@ export const createUser = async (
 ) => {
   try {
     const hash = await bcrypt.hash(req.body.password, 10);
-    const emailExist = await User.findOne({ email: req.body.email });
-    if (emailExist) {
-      throw new Error409('Пользователь с таким email существует');
-    }
     const newUser = await User.create({
       ...req.body, password: hash,
     });
     res.status(statusCode200).send(newUser);
-  } catch (err) {
-    next(err);
+  } catch (err: any) {
+    if (err.code === 11000) {
+      next(new Error409('Пользователь с таким email существует'));
+    } else {
+      next(err);
+    }
   }
 };
 

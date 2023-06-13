@@ -1,9 +1,8 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import {
   Schema, model, Model, Document,
 } from 'mongoose';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import validator from 'validator';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import bcrypt from 'bcryptjs';
 
 export interface IUser {
@@ -20,7 +19,7 @@ interface UserModel extends Model<IUser> {
    Promise<Document<unknown, any, IUser>>;
 }
 
-const userSchema = new Schema<IUser>({
+const userSchema = new Schema<IUser, UserModel>({
   email: {
     type: String,
     required: true,
@@ -63,7 +62,7 @@ userSchema.static(
   function findUserByCredentials(email: string, password: string) {
     return this.findOne({ email })
       .select('+password')
-      .then((user: IUser) => {
+      .then((user) => {
         if (!user) {
           return Promise.reject(new Error('Неправильные почта или пароль'));
         }
