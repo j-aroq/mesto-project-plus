@@ -49,6 +49,12 @@ const userSchema = new Schema<IUser>({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator(value: string) {
+        const regexUrl = /^(http|https):\/\/(?:www\.|(?!www))[^ "]+\.([a-z]{2,})/;
+        return regexUrl.test(value);
+      },
+    },
   },
 });
 

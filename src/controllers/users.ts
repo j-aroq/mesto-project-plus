@@ -1,8 +1,7 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { Error as MongooseError } from 'mongoose';
 import { Request, Response } from 'express';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import bcrypt from 'bcryptjs';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import handleErrors from '../utils/handle-errors';
