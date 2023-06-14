@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import jwt from 'jsonwebtoken';
-import { statusCode401 } from '../constants/status';
+import Error401 from '../errors/error401';
 import { IUserRequest } from '../utils/custom-request';
 
 // eslint-disable-next-line consistent-return
@@ -10,17 +10,13 @@ export default (req: IUserRequest, res: Response, next: NextFunction) => {
     const authorization = req.cookies.jwt;
 
     if (!authorization) {
-      return res
-        .status(statusCode401)
-        .send({ message: 'Необходима авторизация' });
+      throw new Error401('Необходима авторизация');
     }
 
     const payload = jwt.verify(authorization, 'strong-secret');
-    req.user = payload;
+    req.user = payload as {_id: string};
   } catch (err) {
-    return res
-      .status(statusCode401)
-      .send({ message: 'Необходима авторизация' });
+    throw new Error401('Необходима авторизация');
   }
 
   next();

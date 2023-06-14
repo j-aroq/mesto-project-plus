@@ -5,11 +5,10 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import { statusCode200 } from '../constants/status';
-import { IUserIdRequest, IUserRequest } from '../utils/custom-request';
+import { IUserRequest } from '../utils/custom-request';
 import Error404 from '../errors/error404';
 import Error409 from '../errors/error409';
 import Error400 from '../errors/error400';
-import Error401 from '../errors/error401';
 
 export const getUsers = async (
   req: Request,
@@ -50,7 +49,7 @@ export const getUserProfile = async (
   next: NextFunction,
 ) => {
   try {
-    const { _id } = req.user as IUserIdRequest;
+    const { _id } = req.user as {_id: string};
     const user = await User.findById(_id);
     if (!user) {
       throw new Error404('Пользователь не найден');
@@ -92,7 +91,7 @@ export const updateProfile = async (
 ) => {
   try {
     const { name, about } = req.body;
-    const { _id } = req.user as IUserIdRequest;
+    const { _id } = req.user as {_id: string};
     const user = await User.findByIdAndUpdate(
       _id,
       { name, about },
@@ -121,7 +120,7 @@ export const updateAvatar = async (
 ) => {
   try {
     const { avatar } = req.body;
-    const { _id } = req.user as IUserIdRequest;
+    const { _id } = req.user as {_id: string};
     const user = await User.findByIdAndUpdate(
       _id,
       { avatar },
@@ -158,6 +157,6 @@ export const login = async (
       sameSite: true,
     }).send({ token });
   } catch (err) {
-    next(new Error401('Необходима авторизация'));
+    next(err);
   }
 };

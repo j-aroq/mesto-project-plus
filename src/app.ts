@@ -1,11 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import express, {
-  json, Request, Response,
-} from 'express';
-import { errors } from 'celebrate';
+import express, { json } from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
-import { statusCode404 } from './constants/status';
 import { userRouter, userProfileRouter } from './routes/users';
 import cardRouter from './routes/cards';
 import { login, createUser } from './controllers/users';
@@ -14,6 +10,7 @@ import { requestLogger, errorLogger } from './middlewares/logger';
 import { validateCreateUser, validateLogin } from './validation/user';
 import celebrateErrorHandler from './middlewares/celebrate-handle-errors';
 import errorHandler from './middlewares/handle-errors';
+import Error404 from './errors/error404';
 
 const { PORT = 3000 } = process.env;
 
@@ -36,14 +33,13 @@ app.use('/users', userRouter);
 
 app.use('/cards', cardRouter);
 
+app.use(() => {
+  throw new Error404('Маршрут не найден');
+});
+
 app.use(errorLogger);
 
 app.use(celebrateErrorHandler);
-app.use(errors());
-
-app.use((req: Request, res: Response) => {
-  res.status(statusCode404).send({ message: 'Маршрут не найден' });
-});
 
 app.use(errorHandler);
 

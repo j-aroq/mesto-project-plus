@@ -1,11 +1,11 @@
-import { MongooseError } from 'mongoose';
+import { Error as MongooseError } from 'mongoose';
 import { Request, Response, NextFunction } from 'express';
 import Card from '../models/card';
 import { statusCode200 } from '../constants/status';
-import { IUserIdRequest, IUserRequest } from '../utils/custom-request';
+import { IUserRequest } from '../utils/custom-request';
 import Error404 from '../errors/error404';
+import Error401 from '../errors/error401';
 import Error400 from '../errors/error400';
-import Error403 from '../errors/error403';
 
 export const createCard = async (
   req: IUserRequest,
@@ -14,7 +14,7 @@ export const createCard = async (
 ) => {
   try {
     const { name, link } = req.body;
-    const { _id } = req.user as IUserIdRequest;
+    const { _id } = req.user as {_id: string};
     const card = await Card.create({
       name, link, owner: _id,
     });
@@ -46,14 +46,14 @@ export const deleteCard = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { _id } = req.user as IUserIdRequest;
+  const { _id } = req.user as {_id: string};
   try {
     const card = await Card.findById(req.params.cardId);
     if (!card) {
       throw new Error404('Карточка не найдена');
     }
     if (card?.owner.toString() !== _id.toString()) {
-      throw new Error403('Можно удалять только свои карточки!');
+      throw new Error401('Можно удалять только свои карточки!');
     }
     await card.remove();
     res.status(statusCode200).send(card);
@@ -72,7 +72,7 @@ export const likeCard = async (
   next: NextFunction,
 ) => {
   try {
-    const { _id } = req.user as IUserIdRequest;
+    const { _id } = req.user as {_id: string};
     const card = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: _id } },
@@ -97,7 +97,7 @@ export const dislikeCard = async (
   next: NextFunction,
 ) => {
   try {
-    const { _id } = req.user as IUserIdRequest;
+    const { _id } = req.user as {_id: string};
     const card = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: _id } },

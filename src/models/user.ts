@@ -4,6 +4,8 @@ import {
 } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
+import Error401 from '../errors/error401';
+import regexUrl from '../constants/regex';
 
 export interface IUser {
   email: string;
@@ -50,10 +52,17 @@ const userSchema = new Schema<IUser, UserModel>({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(value: string) {
-        const regexUrl = /^(http|https):\/\/(?:www\.|(?!www))[^ "]+\.([a-z]{2,})/;
         return regexUrl.test(value);
       },
     },
+  },
+});
+
+userSchema.set('toJSON', {
+  transform(doc: IUser, ret: Partial<IUser>) {
+    const modifiedRet: Partial<IUser> = { ...ret };
+    delete modifiedRet.password;
+    return modifiedRet;
   },
 });
 
@@ -64,13 +73,13 @@ userSchema.static(
       .select('+password')
       .then((user) => {
         if (!user) {
-          return Promise.reject(new Error('Неправильные почта или пароль'));
+          return Promise.reject(new Error401('Неправильные почта или пароль'));
         }
 
         return bcrypt.compare(password, user.password)
           .then((matched) => {
             if (!matched) {
-              return Promise.reject(new Error('Неправильные почта или пароль'));
+              return Promise.reject(new Error401('Неправильные почта или пароль'));
             }
 
             return user;
